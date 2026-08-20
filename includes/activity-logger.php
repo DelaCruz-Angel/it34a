@@ -1,4 +1,6 @@
 <?php
+require_once ("..config/config.php");
+//require`_once ('includes/activity-logger.php');
 function logActivity($pdo, $user_id,$email,$action, $status="success") {
     try{
         //get client ip address
@@ -33,3 +35,4 @@ function logActivity($pdo, $user_id,$email,$action, $status="success") {
         return false;
 } 
 }
+?>
