@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS activity_logs(
     user_id VARCHAR(255),
     user_email VARCHAR(255),
     activity_log_action VARCHAR(50) NOT NULL,
-    activity_log_status ENUM('success', 'failed') DEFAULT 'success',
+    activity_log_status ENUM('success','failed') DEFAULT 'success',
 
     -- Client Parameters
     activity_log_ip_address VARCHAR(45),
