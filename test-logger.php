@@ -1,12 +1,19 @@
 <?php
-require_once ('config/config.php');
 
-$user_id = "root" ?? null;
-$user_email = "root" ?? null;
+require_once(__DIR__ . '/config/config.php');
 
-$success = logActivity($pdo, $user_id, $user_email, 'test_activity', 'success');
+$user_id = null;
+$user_email = 'test@example.com';
 
-if($success){
+$success = logActivity(
+    $pdo,
+    $user_id,
+    $user_email,
+    'test_activity',
+    'success'
+);
+
+if ($success) {
     echo "Activity logged successfully.";
 } else {
     echo "Failed to insert activity log.";
