@@ -2,8 +2,8 @@
 
 require_once(__DIR__ . '/config/config.php');
 
-$user_id = "root";
-$user_email = "root";
+$user_id = null;
+$user_email = 'test@example.com';
 
 $success = logActivity(
     $pdo,
@@ -18,5 +18,4 @@ if ($success) {
 } else {
     echo "Failed to insert activity log.";
 }
-
 ?>
