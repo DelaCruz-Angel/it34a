@@ -57,6 +57,10 @@ function loginUser($pdo, $login, $password)
     $_SESSION['user_username'] = $user['user_username'];
     $_SESSION['user_role'] = $user['user_role'];
 
+    // Create database session record
+    $_SESSION['session_id'] = startUserSession($pdo);
+
+
 
     // Log successful login
     logActivity(

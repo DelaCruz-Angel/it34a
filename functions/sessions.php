@@ -28,6 +28,7 @@ function startUserSession($pdo)
 
 // end user session
 
+
 function endUserSession($pdo)
 {
     if (!isset($_SESSION['session_id'])) {
@@ -39,7 +40,7 @@ function endUserSession($pdo)
     $stmt = $pdo->prepare("
         UPDATE user_sessions
         SET
-            session_end = NOW(),
+            session_end_time = NOW(),
             session_duration = TIMESTAMPDIFF(
                 SECOND,
                 session_start,
@@ -52,6 +53,7 @@ function endUserSession($pdo)
         'session_id' => $session_id
     ]);
 }
+
 // check if user is already logged in
 function hasActiveUserSession($pdo,$user_id) {
 
