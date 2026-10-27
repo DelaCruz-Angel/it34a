@@ -1,68 +1,88 @@
 <?php
-require_once(__DIR__ . '/config/config.php');
+require_once 'config/config.php';
 
-$user_id = "root" ?? null;
-$user_email = "root" ?? null;
+if(isset($_SESSION['user_id'])){
+    header('Location: ' . BASE_URL . '/app/' . $_SESSION['user_role'] . '/index.php');
+    exit;
+}
 
-$buttons = [
-    'Login',
-    'Logout',
-    'Create Record',
-    'Update Record',
-    'Delete Record',
-    'View Record',
-    'Upload File',
-    'Download File',
-    'Search',
-    'Generate Report',
-];
+$error='';
 
-?>
-<table border="1" cellpadding="1">
-    <tr>
-        <th>Action</th>
-        <th>Test</th>
-        </tr>
-    <?php foreach($buttons as $button): ?>
-        <td><?= htmlspecialchars($button)?></td>
-        <td>
-            <form method="post">
-                <input type="hidden" name="action" 
-                value="<?= htmlspecialchars($button)?>"
-                >
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    $login = trim($_POST['login'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-                <button type="submit">Test</button>
-            </form>
-        </td>
-        </tr>
+    $error = 'Invalid login credentials';
 
-
-
-        <?php endforeach;?>
-        </table>
-
-        <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST'){
-
-    $action = $_POST['action'] ?? 'test_activity';
-
-    $status = random_int(0, 1) === 1? 'success' : 'failed';
-
-    $success = logActivity(
+    if ($login==='' || $password ===''){
+        
+        // Log incomplete login attempt
+    logActivity(
         $pdo,
-        $user_id,
-        $user_email,
-        $action,
-        $status
+        null,
+        $login,
+        'login',
+        'failed'
     );
 
-
-    if ($success) {
-        echo "<p>Activity: ". htmlspecialchars($action) . 
-        " Status: " . htmlspecialchars($status) .
-        " log inserted successfully</p>";
     } else {
-        echo "<p>Failed to insert activity log</p>";
+
+        $result = loginUser($pdo,$login,$password);
+
+        if($result===true){
+            // Log complete login attempt
+            logActivity(
+                $pdo,$_SESSION['user_id'],
+                $_SESSION['user_email'],
+                'login',
+                'success'
+            );
+
+            header('Location: ' . BASE_URL . '/app/' . $_SESSION['user_role'] . '/index.php');
+            exit;
+
+        } elseif ($result === 'active_session'){
+
+            $error = 'This account is already logged in on another device';
+
+        } else {
+
+            $error = 'Invalid Login Credentials';
+        }
     }
 }
+
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+
+<form method="POST">
+    <label>Username or Email</label>
+    <input type="text" name="login" required>
+    <br>
+    <br>
+    <label>Password</label>
+    <input type="password" name="password"required>
+    <br>
+    <button type="submit">Sign In</button>
+</form>
+
+<?php if ($error !== ''): ?>
+    <p>
+        <?= htmlspecialchars($error) ?>
+    </p>
+<?php endif; ?>
+
+<?php if (isset($_GET['timeout'])): ?>
+    <p>Your session has expired due to inactivity. Please log in again.</p>
+<?php endif; ?>
+
+</body>
+</html>

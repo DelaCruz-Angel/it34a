@@ -1,7 +1,11 @@
 <?php
 session_start();
 
-require_once(__DIR__ . '/../includes/activity-logger.php');
+require_once(__DIR__ . '/../functions/activity.php');
+require_once(__DIR__ . '/../functions/auth.php');
+require_once(__DIR__ . '/../functions/redirect.php');
+require_once(__DIR__ . '/../functions/sessions.php');
+
 
 define('BASE_URL', 'http://localhost/it34a');
 
@@ -10,20 +14,16 @@ define('DB_NAME', 'it34a_lab_db');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
-try {
-    $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME,
-        DB_USER,
-        DB_PASS,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]
-    );
-
-    // echo "Connected successfully";
+try{
+$pdo = new PDO(
+    "mysql:host=" .DB_HOST.";dbname=".DB_NAME, DB_USER, DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
 
 } catch (PDOException $e) {
+    
     die("Connection failed: " . $e->getMessage());
 }
+
+
 ?>
