@@ -6,6 +6,10 @@ require '../../config/config.php';
 
 requireRole('admin');
 
+// Check session timeout
+checkSessionTimeout();
+
+
 // Get activity logs
 $stmt = $pdo->query("
     SELECT *

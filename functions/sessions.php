@@ -1,34 +1,40 @@
+
 <?php
-// start user session
+
+// START USER SESSION
 function startUserSession($pdo)
 {
     if (!isset($_SESSION['user_id'])) {
         return false;
     }
+
     $user_id = $_SESSION['user_id'];
 
     $stmt = $pdo->prepare("
-    INSERT INTO user_sessions(
-    user_id,
-    session_start
-    )
-    VALUES (
-    :user_id,
-    NOW()
-    )
+        INSERT INTO user_sessions (
+            user_id,
+            session_start
+        )
+        VALUES (
+            :user_id,
+            NOW()
+        )
     ");
 
     $stmt->execute([
         'user_id' => $user_id
     ]);
 
-    return $pdo->lastInsertId();
+    // Save database session ID
+    $session_id = $pdo->lastInsertId();
+
+    $_SESSION['session_id'] = $session_id;
+
+    return $session_id;
 }
 
 
-// end user session
-
-
+// END USER SESSION
 function endUserSession($pdo)
 {
     if (!isset($_SESSION['session_id'])) {
@@ -55,14 +61,15 @@ function endUserSession($pdo)
     ]);
 }
 
-// function to check if user is already logged in
+
+// CHECK ACTIVE USER SESSION
 function hasActiveUserSession($pdo, $user_id)
 {
     $stmt = $pdo->prepare("
         SELECT session_id
         FROM user_sessions
         WHERE user_id = :user_id
-        AND session_end_time IS NULL
+          AND session_end_time IS NULL
         LIMIT 1
     ");
 
@@ -73,37 +80,40 @@ function hasActiveUserSession($pdo, $user_id)
     return (bool) $stmt->fetchColumn();
 }
 
-//Session Timeout 
+
+// SESSION TIMEOUT
 function checkSessionTimeout()
 {
     global $pdo;
 
-    //Timeout Settings
-    // 10s for testing
-    // 1800s for 30 minutes session time
+    // 10 seconds for testing
+    // 1800 seconds = 30 minutes
+    $timeout = 10;
 
-    $timeout = 10; // 30 minutes or 10
-
-//check last activity
+    // Check last activity
     if (isset($_SESSION['last_activity'])) {
+
         $inactive = time() - $_SESSION['last_activity'];
 
+        // If inactive for 10 seconds
         if ($inactive >= $timeout) {
-            
-                endUserSession($pdo);
-            }
-            //Destroy PHP Sessions
-            session_unset();
+
+            // End database session
+            endUserSession($pdo);
+
+            // Destroy PHP session
+            $_SESSION = [];
+
             session_destroy();
 
-            //Redirect
+            // Redirect to login page
             header('Location: ' . BASE_URL . '/index.php?timeout=1');
             exit;
         }
     }
 
+    // Update last activity
     $_SESSION['last_activity'] = time();
 }
-
 
 ?>
