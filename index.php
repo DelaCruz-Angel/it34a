@@ -1,3 +1,4 @@
+
 <?php
 require_once 'config/config.php';
 
@@ -20,13 +21,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     if ($login==='' || $password ===''){
         
         // Log incomplete login attempt
-    logActivity(
-        $pdo,
-        null,
-        $login,
-        'login',
-        'failed'
-    );
+        logActivity(
+            $pdo,
+            null,
+            $login,
+            'login',
+            'failed'
+        );
 
     } else {
 
@@ -67,7 +68,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
 <body>
 
 <form method="POST">
-    type="hidden"
+    <input
+        type="hidden"
         name="csrf_token"
         value="<?= htmlspecialchars(generateCsrfToken()) ?>"
     >
@@ -77,7 +79,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     <br>
     <br>
     <label>Password</label>
-    <input type="password" name="password"required>
+    <input type="password" name="password" required>
     <br>
     <button type="submit">Sign In</button>
 </form>

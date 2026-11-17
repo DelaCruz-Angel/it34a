@@ -1,143 +1,167 @@
 
 <?php
 
-require '../../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 
 requireRole('admin');
 
-// Check session timeout
-checkSessionTimeout();
+$section = $_GET['section'] ?? 'activity-logs';
+$action = $_GET['action'] ?? '';
 
+logActivity(
+    $pdo,
+    $_SESSION['user_id'],
+    $_SESSION['user_email'],
+    'view_activity_logs'
+);
 
-// Get activity logs
+// query #3 Get all activity logs
+
 $stmt = $pdo->query("
+
     SELECT *
+
     FROM activity_logs
+
     ORDER BY activity_log_created_at DESC
+
 ");
 
 $activities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+if ($action == 'export') {
+    if ($section == 'activity-logs') {
+
+        $stmt = $pdo->query("
+            SELECT 
+                activity_log_id,
+                user_id,
+                user_email,
+                activity_log_action,
+                activity_log_status,
+                activity_log_ip_address,
+                activity_log_user_agent,
+                activity_log_created_at
+            FROM activity_logs
+            ORDER BY activity_log_created_at
+        ");
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        logActivity(
+            $pdo,
+            $_SESSION['user_id'],
+            $_SESSION['user_email'],
+            'export_activity_logs',
+            'success'
+        );
+
+        exportCsv(
+            'activity_logs',
+            [
+                'Record ID', 'User ID', 'User Email', 'Action', 'Status', 'IP Address', 'User Agent', 'Date & Time',
+            ],
+            $rows
+        );
+
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Admin Panel</title>
+    <title>Admin</title>
 
-    <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
 
-    <div class="admin-container">
+    <h1>Welcome Admin</h1>
 
-        <!-- Header -->
-        <div class="admin-header">
+    <a href="<?php echo BASE_URL; ?>/auth/signout.php">Sign Out</a>
 
-            <div>
-                <h1>Welcome Admin</h1>
-            </div>
+    <?php if ($section === 'activity-logs') : ?>
 
-            
-            <a href="../auth/signout.php" class="signout-btn">
-            Sign Out
-            </a>
+        <h4>Activity Logs
+        <a href="index.php?section=activity-logs&amp;action=export">Export CSV</a>
+        </h4>
 
+    <table id="example" class="table table-striped" style="width:auto">
 
-        </div>
+        <thead>
 
+            <tr>
 
-        <!-- Activity Logs Table -->
-        <div class="table-container">
+                <th>Record ID</th>
+                <th>User ID</th>
+                <th>UserEmail</th>
+                <th>Action</th>
+                <th>Status</th>
+                <th>IP Address</th>
+                <th>User Agent</th>
+                <th>Date & Time</th>
 
-            <table class="activity-table">
+            </tr>
 
-                <thead>
-                    <tr>
-                        <th>Record ID</th>
-                        <th>User ID</th>
-                        <th>User Email</th>
-                        <th>Action</th>
-                        <th>Status</th>
-                        <th>IP Address</th>
-                        <th>User Agent</th>
-                        <th>Date & Time</th>
-                    </tr>
-                </thead>
+        </thead>
 
-                <tbody>
+        <tbody>
 
-                    <?php if (empty($activities)): ?>
+            <?php foreach ($activities as $activity): ?>
 
-                        <tr>
-                            <td colspan="8" class="no-data">
-                                No activity logs found.
-                            </td>
-                        </tr>
+                <tr>
 
-                    <?php else: ?>
+                    <td>
+                        <?= htmlspecialchars($activity['activity_log_id'] ?? '') ?>
+                    </td>
 
-                        <?php foreach ($activities as $activity): ?>
+                    <td>
+                        <?= htmlspecialchars($activity['user_id'] ?? '') ?>
+                    </td>
 
-                            <tr>
+                    <td>
+                        <?= htmlspecialchars($activity['user_email'] ?? '') ?>
+                    </td>
 
-                                <td>
-                                    <?= htmlspecialchars($activity['activity_log_id']) ?>
-                                </td>
+                    <td>
+                        <?= htmlspecialchars($activity['activity_log_action'] ?? '') ?>
+                    </td>
 
-                                <td>
-                                    <?= htmlspecialchars($activity['user_id']) ?>
-                                </td>
+                    <td>
+                        <?= htmlspecialchars($activity['activity_log_status'] ?? '') ?>
+                    </td>
 
-                                <td>
-                                    <?= htmlspecialchars($activity['user_email']) ?>
-                                </td>
+                    <td>
+                        <?= htmlspecialchars($activity['activity_log_ip_address'] ?? '') ?>
+                    </td>
 
-                                <td>
-                                    <?= htmlspecialchars($activity['activity_log_action']) ?>
-                                </td>
+                    <td>
+                        <?= htmlspecialchars($activity['activity_log_user_agent'] ?? '') ?>
+                    </td>
 
-                                <td>
-                                    <?php
-                                    $status = strtolower($activity['activity_log_status']);
-                                    ?>
+                    <td>
+                        <?= htmlspecialchars($activity['activity_log_created_at'] ?? '') ?>
+                    </td>
 
-                                    <span class="status <?= htmlspecialchars($status) ?>">
-                                        <?= htmlspecialchars($activity['activity_log_status']) ?>
-                                    </span>
-                                </td>
+                </tr>
 
-                                <td>
-                                    <?= htmlspecialchars($activity['activity_log_ip_address']) ?>
-                                </td>
+            <?php endforeach; ?>
 
-                                <td class="user-agent">
-                                    <?= htmlspecialchars($activity['activity_log_user_agent']) ?>
-                                </td>
+        </tbody>
 
-                                <td>
-                                    <?= htmlspecialchars($activity['activity_log_created_at']) ?>
-                                </td>
+    </table>
 
-                            </tr>
-
-                        <?php endforeach; ?>
-
-                    <?php endif; ?>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
+    <?php endif; ?>
 
 </body>
 
